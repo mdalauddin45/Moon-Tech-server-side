@@ -1,57 +1,44 @@
-require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+
 const app = express();
 const port = process.env.PORT || 5000;
-
-const cors = require("cors");
 
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.q66zrl2.mongodb.net/?retryWrites=true&w=majority`;
+//MongoDb Add
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.teba24n.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
 
-const run = async () => {
+// Connect to MongoDb
+async function run() {
   try {
-    const db = client.db("moontech");
-    const productCollection = db.collection("product");
+    const productsCollection = client.db("moontech").collection("products");
 
+    //get all products
     app.get("/products", async (req, res) => {
-      const cursor = productCollection.find({});
-      const product = await cursor.toArray();
-
-      res.send({ status: true, data: product });
+      const product = await productsCollection.find().toArray();
+      res.send(product);
     });
-
-    app.post("/product", async (req, res) => {
-      const product = req.body;
-
-      const result = await productCollection.insertOne(product);
-
-      res.send(result);
-    });
-
-    app.delete("/product/:id", async (req, res) => {
-      const id = req.params.id;
-
-      const result = await productCollection.deleteOne({ _id: ObjectId(id) });
-      res.send(result);
-    });
-  } finally {
+  } catch (error) {
+    console.log(error);
   }
-};
+}
 
-run().catch((err) => console.log(err));
+run().catch((err) => console.error(err));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Moon Tech Server is running...");
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log(`Server is running...on ${port}`);
 });
